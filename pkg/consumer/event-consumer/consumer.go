@@ -3,6 +3,7 @@ package event_consumer
 import (
 	"log"
 	"log-proj/pkg/events"
+	"sync"
 	"time"
 )
 
@@ -40,13 +41,18 @@ func (c *Consumer) Start() error {
 }
 
 func (c *Consumer) handleEvents(events []events.Event) error {
+	var wg sync.WaitGroup
+	wg.Add(len(events))
 	for _, event := range events {
-		log.Printf("got new event: %s", event.Text)
+		go func() {
+			defer wg.Done()
+			log.Printf("got new event: %s", event.Text)
 
-		if err := c.processor.Process(event); err != nil {
-			log.Printf("can`t handle event: %s", err.Error())
-			continue
-		}
+			if err := c.processor.Process(event); err != nil {
+				log.Printf("can`t handle event: %s", err.Error())
+			}
+		}()
+
 	}
 
 	return nil

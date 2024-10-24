@@ -15,7 +15,7 @@ const (
 func (p *Processor) doCmd(text string, chatID int, username string) error {
 	text = strings.TrimSpace(text)
 
-	log.Printf("get new command: %s from user: %s\n", text)
+	log.Printf("get new command: %s from user: %s\n", text, username)
 	switch text {
 	case HelpCmd:
 		return p.sendHelp(chatID)
