@@ -12,8 +12,8 @@ import (
 type Processor struct {
 	tg      *tg.Client
 	offset  int
-	fsm     *fsm.Interface
 	storage db.Interface
+	fsm     fsm.Interface
 }
 
 type Meta struct {
@@ -25,10 +25,11 @@ var (
 	ErrUnkownType = errors.New("UnkownType")
 )
 
-func New(client *tg.Client, storage db.Interface) *Processor {
+func New(client *tg.Client, storage db.Interface, fsm fsm.Interface) *Processor {
 	return &Processor{
 		tg:      client,
 		storage: storage,
+		fsm:     fsm,
 	}
 }
 

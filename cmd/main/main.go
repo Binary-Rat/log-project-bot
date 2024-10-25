@@ -7,6 +7,7 @@ import (
 	tgClient "log-proj/pkg/clients/tg"
 	event_consumer "log-proj/pkg/consumer/event-consumer"
 	"log-proj/pkg/db/array"
+	"log-proj/pkg/fsm/redis"
 )
 
 const (
@@ -18,8 +19,11 @@ const (
 // If token is empty, the bot will panic.
 func main() {
 	client := tgClient.New(tgBotHost, mustToken())
+	//setup the db
 	db := array.New()
-	eventProc := tg.New(client, db)
+	//setup the fsm
+	fsm := redis.New()
+	eventProc := tg.New(client, db, fsm)
 
 	log.Printf("service started")
 
