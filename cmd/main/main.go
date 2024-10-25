@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"log"
+	"log-proj/internal/events/tg"
 	tgClient "log-proj/pkg/clients/tg"
 	event_consumer "log-proj/pkg/consumer/event-consumer"
-	"log-proj/pkg/events/tg"
+	"log-proj/pkg/db/array"
 )
 
 const (
@@ -17,7 +18,8 @@ const (
 // If token is empty, the bot will panic.
 func main() {
 	client := tgClient.New(tgBotHost, mustToken())
-	eventProc := tg.New(client)
+	db := array.New()
+	eventProc := tg.New(client, db)
 
 	log.Printf("service started")
 

@@ -2,7 +2,7 @@ package event_consumer
 
 import (
 	"log"
-	"log-proj/pkg/events"
+	"log-proj/internal/events"
 	"sync"
 	"time"
 )
@@ -52,8 +52,8 @@ func (c *Consumer) handleEvents(events []events.Event) error {
 				log.Printf("can`t handle event: %s", err.Error())
 			}
 		}()
-
 	}
+	wg.Wait()
 
 	return nil
 }
