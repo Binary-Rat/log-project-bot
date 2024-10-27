@@ -17,4 +17,8 @@ const (
 	CalcWMsg = `
 	Введите вес груза:
 	`
+
+	MsgUnknownCommand = "unknown command"
+
+	WrongValue = "wrong value"
 )
