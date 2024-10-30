@@ -3,19 +3,23 @@ package array
 import "log-proj/pkg/models"
 
 type db struct {
-	Cars []models.Car
+	Cars models.Cars
 }
 
-func New() *db {
+func New(cars models.Cars) *db {
 	return &db{
-		Cars: make([]models.Car, 0),
+		Cars: cars,
 	}
 }
 
-func (d *db) GetCars(loadV, loadW float64) (cars []models.Car, err error) {
-	for _, car := range d.Cars {
+// Need to think about neccessity of Cars struct couse d.Cars.Cars is terriable
+func (d *db) GetCars(loadV, loadW float64) (cars models.Cars, err error) {
+	for _, car := range d.Cars.Cars {
+		if cars.Len() > 2 {
+			break
+		}
 		if car.LoadV >= loadV && car.LoadW >= loadW {
-			cars = append(cars, car)
+			cars.Add(car)
 		}
 	}
 	return cars, nil

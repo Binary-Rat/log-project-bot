@@ -58,14 +58,8 @@ func (f *fsm) SetLoadW(ctx context.Context, userID string, loadW float64) error 
 func (f *fsm) GetLoad(ctx context.Context, userID string) (loadV float64, loadW float64) {
 	vals := f.client.HMGet(ctx, userID, loadVField, loadWField).Val()
 	log.Println(vals)
-	v, ok := vals[0].(string)
-	if !ok {
-		log.Println("cannot convert loadV to float")
-	}
-	w, ok := vals[1].(string)
-	if !ok {
-		log.Println("cannot convert loadW to float")
-	}
+	v, _ := vals[0].(string)
+	w, _ := vals[1].(string)
 	loadV, err := strconv.ParseFloat(v, 64)
 	if err != nil {
 		log.Println("cannot convert loadV to float")

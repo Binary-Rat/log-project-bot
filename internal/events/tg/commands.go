@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"log-proj/internal/text"
+	"log-proj/pkg/lib/e"
+	"log-proj/pkg/models"
 	"strconv"
 	"strings"
 )
@@ -30,14 +32,13 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 		return p.tg.SendMessage(chatID, text.HelloMsg)
 	}
 
+	//check state
 	if state == stateCalcV {
 		return p.calcVEvent(msg, chatID, username)
-	}
-
-	if state == stateCalcW {
+	} else if state == stateCalcW {
 		return p.calcWEvent(msg, chatID, username)
 	}
-
+	//check command
 	switch msg {
 	case StartCmd:
 		return p.sendHello(chatID, username)
@@ -70,10 +71,13 @@ func (p *Processor) calcWEvent(msg string, chatID int, username string) error {
 		return p.tg.SendMessage(chatID, text.WrongValue)
 	}
 	p.fsm.SetLoadW(context.TODO(), username, w)
-	v, m := p.fsm.GetLoad(context.TODO(), username)
 	p.fsm.SetState(context.TODO(), username, "")
-	log.Println(v, m)
-	return p.tg.SendMessage(chatID, fmt.Sprintf("%f, %f", v, m))
+
+	cars, err := p.cars(username)
+	if err != nil {
+		e.Warp("can`t get cars", err)
+	}
+	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "))
 }
 
 func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
@@ -85,4 +89,9 @@ func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
 	p.fsm.SetLoadV(context.TODO(), username, v)
 	p.fsm.SetState(context.TODO(), username, stateCalcW)
 	return p.tg.SendMessage(chatID, text.CalcWMsg)
+}
+
+func (p *Processor) cars(userID string) (cars models.Cars, err error) {
+	v, w := p.fsm.GetLoad(context.TODO(), userID)
+	return p.storage.GetCars(v, w)
 }

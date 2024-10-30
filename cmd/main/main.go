@@ -8,6 +8,7 @@ import (
 	event_consumer "log-proj/pkg/consumer/event-consumer"
 	"log-proj/pkg/db/array"
 	"log-proj/pkg/fsm/redis"
+	"log-proj/pkg/models"
 )
 
 const (
@@ -19,8 +20,15 @@ const (
 // If token is empty, the bot will panic.
 func main() {
 	client := tgClient.New(tgBotHost, mustToken())
-	//setup the db
-	db := array.New()
+	//setup the db need to do it via config
+	cars := models.Cars{
+		Cars: []models.Car{
+			{Name: "Car1", LoadV: 100, LoadW: 100},
+			{Name: "Car2", LoadV: 200, LoadW: 200},
+			{Name: "Car3", LoadV: 300, LoadW: 300},
+		},
+	}
+	db := array.New(cars)
 	//setup the fsm
 	fsm := redis.New()
 	eventProc := tg.New(client, db, fsm)
