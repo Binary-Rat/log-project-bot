@@ -31,7 +31,7 @@ func main() {
 	db := array.New(cars)
 	//setup the fsm
 	fsm := redis.New()
-	eventProc := tg.New(client, db, fsm)
+	eventProc := tg.New(client, db, fsm, false)
 
 	log.Printf("service started")
 

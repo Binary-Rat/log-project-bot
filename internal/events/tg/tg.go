@@ -10,10 +10,11 @@ import (
 )
 
 type Processor struct {
-	tg      *tg.Client
-	offset  int
-	storage db.Interface
-	fsm     fsm.Interface
+	tg               *tg.Client
+	offset           int
+	storage          db.Interface
+	fsm              fsm.Interface
+	ProcessUnhandled bool
 }
 
 type Meta struct {
@@ -25,11 +26,12 @@ var (
 	ErrUnkownType = errors.New("UnkownType")
 )
 
-func New(client *tg.Client, storage db.Interface, fsm fsm.Interface) *Processor {
+func New(client *tg.Client, storage db.Interface, fsm fsm.Interface, processUnhandled bool) *Processor {
 	return &Processor{
-		tg:      client,
-		storage: storage,
-		fsm:     fsm,
+		tg:               client,
+		storage:          storage,
+		fsm:              fsm,
+		ProcessUnhandled: processUnhandled,
 	}
 }
 
@@ -40,6 +42,12 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 	}
 
 	if len(updates) == 0 {
+		return nil, nil
+	}
+
+	if !p.ProcessUnhandled {
+		p.offset = updates[len(updates)-1].ID + 1
+		p.ProcessUnhandled = true
 		return nil, nil
 	}
 
