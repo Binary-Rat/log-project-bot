@@ -25,10 +25,10 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	msg = strings.TrimSpace(msg)
 	log.Printf("get new command: %s from user: %s\n", msg, username)
 
-	state := p.fsm.GetState(context.Background(), username)
+	state := p.fsm.GetState(context.TODO(), username)
 
 	if msg == "/exit" {
-		p.fsm.SetState(context.Background(), username, "")
+		p.fsm.SetState(context.TODO(), username, "")
 		return p.tg.SendMessage(chatID, text.HelloMsg)
 	}
 
