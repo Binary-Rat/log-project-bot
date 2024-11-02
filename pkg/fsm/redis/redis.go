@@ -22,13 +22,17 @@ const (
 //and state, loadV, loadW as values
 
 func New() *fsm {
-	return &fsm{
+	fsm := &fsm{
 		client: redis.NewClient(&redis.Options{
-			Addr:     "localhost:6379",
+			Addr:     "redis:6379",
 			Password: "",
 			DB:       0,
 		}),
 	}
+	if fsm.client.Ping(context.Background()).Err() != nil {
+		log.Fatal("cannot connect to redis")
+	}
+	return fsm
 }
 
 // SetState sets the state associated with the given userID in Redis.
@@ -57,7 +61,6 @@ func (f *fsm) SetLoadW(ctx context.Context, userID string, loadW float64) error 
 
 func (f *fsm) GetLoad(ctx context.Context, userID string) (loadV float64, loadW float64) {
 	vals := f.client.HMGet(ctx, userID, loadVField, loadWField).Val()
-	log.Println(vals)
 	v, _ := vals[0].(string)
 	w, _ := vals[1].(string)
 	loadV, err := strconv.ParseFloat(v, 64)

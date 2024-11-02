@@ -13,6 +13,6 @@ FROM alpine:3.7
 
 WORKDIR /app
 
-COPY --from=build-stage /app /app
+COPY --from=build-stage /app/app /app
 
-CMD ["./app -t $TOKEN"]
+CMD ["./app"]
