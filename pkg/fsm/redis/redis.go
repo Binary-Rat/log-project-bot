@@ -24,7 +24,7 @@ const (
 func New() *fsm {
 	fsm := &fsm{
 		client: redis.NewClient(&redis.Options{
-			Addr:     "redis:6379",
+			Addr:     "localhost:6379",
 			Password: "",
 			DB:       0,
 		}),

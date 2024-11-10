@@ -3,6 +3,7 @@ package tg
 import (
 	"errors"
 	"log-proj/internal/events"
+	"log-proj/internal/source"
 	"log-proj/pkg/clients/tg"
 	"log-proj/pkg/db"
 	"log-proj/pkg/fsm"
@@ -15,9 +16,16 @@ type Processor struct {
 	storage          db.Interface
 	fsm              fsm.Interface
 	ProcessUnhandled bool
+	Source           source.Interface
 }
 
-type Meta struct {
+type MetaMessage struct {
+	ChatID   int
+	Username string
+}
+
+type MetaCallBack struct {
+	QueryID  int
 	ChatID   int
 	Username string
 }
@@ -66,13 +74,15 @@ func (p *Processor) Process(event events.Event) error {
 	switch event.Type {
 	case events.Message:
 		return p.processMessage(event)
+	case events.CallBack:
+		return p.processCallBack(event)
 	default:
 		return e.Warp("can`t process event", ErrUnkownType)
 	}
 }
 
 func (p *Processor) processMessage(event events.Event) error {
-	meta, err := meta(event)
+	meta, err := metaMessage(event)
 	if err != nil {
 		return e.Warp("can`t get meta", err)
 	}
@@ -83,10 +93,29 @@ func (p *Processor) processMessage(event events.Event) error {
 
 }
 
-func meta(event events.Event) (Meta, error) {
-	res, ok := event.Meta.(Meta)
+func (p *Processor) processCallBack(event events.Event) error {
+	meta, err := metaCallBack(event)
+	if err != nil {
+		return e.Warp("can`t get meta", err)
+	}
+	if err := p.doCallBack(event.Text, meta.ChatID, meta.Username); err != nil {
+		return e.Warp("can`t do cmd", err)
+	}
+	return nil
+}
+
+func metaMessage(event events.Event) (MetaMessage, error) {
+	res, ok := event.Meta.(MetaMessage)
 	if !ok {
-		return Meta{}, e.Warp("can`t get meta", nil)
+		return MetaMessage{}, e.Warp("can`t get meta", nil)
+	}
+	return res, nil
+}
+
+func metaCallBack(event events.Event) (MetaCallBack, error) {
+	res, ok := event.Meta.(MetaCallBack)
+	if !ok {
+		return MetaCallBack{}, e.Warp("can`t get meta", nil)
 	}
 	return res, nil
 }
@@ -99,9 +128,14 @@ func event(upd tg.Updates) events.Event {
 	}
 
 	if updType == events.Message {
-		res.Meta = Meta{
+		res.Meta = MetaMessage{
 			ChatID:   upd.Message.Chat.ID,
 			Username: upd.Message.From.Username,
+		}
+	} else if updType == events.CallBack {
+		res.Meta = MetaCallBack{
+			Username: upd.CallbackQuery.From.Username,
+			ChatID:   upd.CallbackQuery.Message.Chat.ID,
 		}
 	}
 
@@ -109,15 +143,19 @@ func event(upd tg.Updates) events.Event {
 }
 
 func fetchText(upd tg.Updates) string {
-	if upd.Message == nil {
-		return ""
+	if upd.Message != nil {
+		return upd.Message.Text
+	} else if upd.CallbackQuery != nil {
+		return upd.CallbackQuery.Data
 	}
-	return upd.Message.Text
+	return ""
 }
 
 func fetchType(upd tg.Updates) events.Type {
-	if upd.Message == nil {
-		return events.Unknown
+	if upd.Message != nil {
+		return events.Message
+	} else if upd.CallbackQuery != nil {
+		return events.CallBack
 	}
-	return events.Message
+	return events.Unknown
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"log-proj/internal/text"
+	"log-proj/pkg/clients/tg"
 	"log-proj/pkg/lib/e"
 	"log-proj/pkg/models"
 	"strconv"
@@ -21,6 +22,10 @@ const (
 	CalcCmd  = "/calc"
 )
 
+//Unfortunately, i really dont know how to divede this logi(((
+//The commands.go need to be in internal
+//The tg.go need to be in pkg
+
 func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	msg = strings.TrimSpace(msg)
 	log.Printf("get new command: %s from user: %s\n", msg, username)
@@ -29,7 +34,7 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 
 	if msg == "/exit" {
 		p.fsm.SetState(context.TODO(), username, "")
-		return p.tg.SendMessage(chatID, text.HelloMsg)
+		return p.tg.SendMessage(chatID, text.HelloMsg, nil)
 	}
 
 	//check state
@@ -47,28 +52,28 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	case CalcCmd:
 		return p.startCalc(chatID, username)
 	default:
-		return p.tg.SendMessage(chatID, text.MsgUnknownCommand)
+		return p.tg.SendMessage(chatID, text.MsgUnknownCommand, nil)
 	}
 }
 
 func (p *Processor) sendHelp(chatID int) error {
-	return p.tg.SendMessage(chatID, text.MsgUnknownCommand)
+	return p.tg.SendMessage(chatID, text.MsgUnknownCommand, nil)
 }
 
 func (p *Processor) sendHello(chatID int, u string) error {
-	return p.tg.SendMessage(chatID, fmt.Sprintf(text.HelloMsg, u))
+	return p.tg.SendMessage(chatID, fmt.Sprintf(text.HelloMsg, u), nil)
 }
 
 func (p *Processor) startCalc(chatID int, u string) error {
 	p.fsm.SetState(context.Background(), u, stateCalcV)
-	return p.tg.SendMessage(chatID, text.CalcVMsg)
+	return p.tg.SendMessage(chatID, text.CalcVMsg, nil)
 }
 
 func (p *Processor) calcWEvent(msg string, chatID int, username string) error {
 	w, err := strconv.ParseFloat(msg, 32)
 	if err != nil {
 		log.Printf("can`t convert string to int: %v", err)
-		return p.tg.SendMessage(chatID, text.WrongValue)
+		return p.tg.SendMessage(chatID, text.WrongValue, nil)
 	}
 	p.fsm.SetLoadW(context.TODO(), username, w)
 	p.fsm.SetState(context.TODO(), username, "")
@@ -77,18 +82,36 @@ func (p *Processor) calcWEvent(msg string, chatID int, username string) error {
 	if err != nil {
 		e.Warp("can`t get cars", err)
 	}
-	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "))
+	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), nil)
 }
 
 func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
 	v, err := strconv.ParseFloat(msg, 64)
 	if err != nil {
 		log.Printf("can`t convert string to int: %v", err)
-		return p.tg.SendMessage(chatID, text.WrongValue)
+		return p.tg.SendMessage(chatID, text.WrongValue, nil)
 	}
 	p.fsm.SetLoadV(context.TODO(), username, v)
 	p.fsm.SetState(context.TODO(), username, stateCalcW)
-	return p.tg.SendMessage(chatID, text.CalcWMsg)
+	keybord := &tg.ReplyMarkup{
+		InlineKeyboard: [][]tg.InlineKeyboardButton{
+			{
+				{
+					Text:         "1",
+					CallbackData: "1",
+				},
+				{
+					Text:         "2",
+					CallbackData: "2",
+				},
+				{
+					Text:         "3",
+					CallbackData: "3",
+				},
+			},
+		},
+	}
+	return p.tg.SendMessage(chatID, text.CalcWMsg, keybord)
 }
 
 func (p *Processor) cars(userID string) (cars models.Cars, err error) {

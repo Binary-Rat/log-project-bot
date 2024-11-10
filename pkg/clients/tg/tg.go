@@ -1,7 +1,9 @@
 package tg
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log-proj/pkg/lib/e"
 	"net/http"
@@ -11,7 +13,7 @@ import (
 )
 
 const getUpdatesMethod = "getUpdates"
-const sendMessageMethod = "sendMessage"
+const sendMessageEndpoint = "sendMessage"
 
 type Client struct {
 	host     string
@@ -36,7 +38,7 @@ func (c *Client) Updates(offset int, limit int) ([]Updates, error) {
 	q.Add("offset", strconv.Itoa(offset))
 	q.Add("limit", strconv.Itoa(limit))
 
-	data, err := c.doRequest(getUpdatesMethod, q)
+	data, err := c.doRequest(getUpdatesMethod, q, nil)
 	if err != nil {
 		return nil, e.Warp("can`t get updates", err)
 	}
@@ -50,12 +52,24 @@ func (c *Client) Updates(offset int, limit int) ([]Updates, error) {
 	return res.Result, nil
 }
 
-func (c *Client) SendMessage(chatID int, text string) error {
-	q := url.Values{}
-	q.Add("chat_id", strconv.Itoa(chatID))
-	q.Add("text", text)
-
-	_, err := c.doRequest(sendMessageMethod, q)
+func (c *Client) SendMessage(chatID int, text string, keybord *ReplyMarkup) error {
+	if keybord == nil {
+		keybord = &ReplyMarkup{}
+	}
+	if keybord.InlineKeyboard == nil {
+		keybord.InlineKeyboard = [][]InlineKeyboardButton{{}}
+	}
+	msg := OutcomingMessage{
+		ChatID:      chatID,
+		Text:        text,
+		ReplyMarkup: keybord,
+	}
+	body, err := json.Marshal(msg)
+	fmt.Println(string(body))
+	if err != nil {
+		return e.Warp("can`t marshal message", err)
+	}
+	_, err = c.doRequest(sendMessageEndpoint, nil, body)
 	if err != nil {
 		return e.Warp("can`t send message", err)
 	}
@@ -63,20 +77,29 @@ func (c *Client) SendMessage(chatID int, text string) error {
 	return nil
 }
 
-func (c *Client) doRequest(method string, query url.Values) ([]byte, error) {
+func (c *Client) doRequest(Endpoint string, q url.Values, body []byte) ([]byte, error) {
 	const errMsg = "can`t do request"
 	u := url.URL{
 		Scheme: "https",
 		Host:   c.host,
-		Path:   path.Join(c.basePath, method),
+		Path:   path.Join(c.basePath, Endpoint),
+	}
+	method := http.MethodGet
+	var buf io.Reader
+
+	if body != nil {
+		buf = bytes.NewBuffer(body)
+		method = http.MethodPost
 	}
 
-	req, err := http.NewRequest(http.MethodGet, u.String(), nil)
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequest(method, u.String(), buf)
 	if err != nil {
 		return nil, e.Warp(errMsg, err)
 	}
 
-	req.URL.RawQuery = query.Encode()
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -85,7 +108,7 @@ func (c *Client) doRequest(method string, query url.Values) ([]byte, error) {
 
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err = io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, e.Warp(errMsg, err)
 	}
