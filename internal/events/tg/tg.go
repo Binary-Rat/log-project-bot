@@ -15,7 +15,7 @@ type Processor struct {
 	offset           int
 	storage          db.Interface
 	fsm              fsm.Interface
-	ProcessUnhandled bool
+	processUnhandled bool
 	Source           source.Interface
 }
 
@@ -34,12 +34,13 @@ var (
 	ErrUnkownType = errors.New("UnkownType")
 )
 
-func New(client *tg.Client, storage db.Interface, fsm fsm.Interface, processUnhandled bool) *Processor {
+func New(client *tg.Client, storage db.Interface, fsm fsm.Interface, processUnhandled bool, source source.Interface) *Processor {
 	return &Processor{
 		tg:               client,
 		storage:          storage,
 		fsm:              fsm,
-		ProcessUnhandled: processUnhandled,
+		processUnhandled: processUnhandled,
+		Source:           source,
 	}
 }
 
@@ -53,9 +54,9 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 		return nil, nil
 	}
 
-	if !p.ProcessUnhandled {
+	if !p.processUnhandled {
 		p.offset = updates[len(updates)-1].ID + 1
-		p.ProcessUnhandled = true
+		p.processUnhandled = true
 		return nil, nil
 	}
 

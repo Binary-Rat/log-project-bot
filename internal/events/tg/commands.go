@@ -93,24 +93,7 @@ func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
 	}
 	p.fsm.SetLoadV(context.TODO(), username, v)
 	p.fsm.SetState(context.TODO(), username, stateCalcW)
-	keybord := &tg.ReplyMarkup{
-		InlineKeyboard: [][]tg.InlineKeyboardButton{
-			{
-				{
-					Text:         "1",
-					CallbackData: "1",
-				},
-				{
-					Text:         "2",
-					CallbackData: "2",
-				},
-				{
-					Text:         "3",
-					CallbackData: "3",
-				},
-			},
-		},
-	}
+	keybord := &tg.ReplyMarkup{InlineKeyboard: keybord}
 	return p.tg.SendMessage(chatID, text.CalcWMsg, keybord)
 }
 

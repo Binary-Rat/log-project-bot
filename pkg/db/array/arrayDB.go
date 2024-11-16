@@ -6,7 +6,7 @@ type db struct {
 	Cars models.Cars
 }
 
-func New(cars models.Cars) *db {
+func New() *db {
 	return &db{
 		Cars: cars,
 	}
