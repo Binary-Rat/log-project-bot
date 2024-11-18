@@ -13,6 +13,7 @@ type Atisu struct {
 	client       *atisu.Client
 }
 
+// Add ping
 func New(token string, isDemo bool) (*Atisu, error) {
 	client, err := atisu.NewClient(token, isDemo)
 	if err != nil {
