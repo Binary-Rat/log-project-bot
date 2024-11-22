@@ -16,7 +16,7 @@ type Processor struct {
 	storage          db.Interface
 	fsm              fsm.Interface
 	processUnhandled bool
-	Source           source.Interface
+	source           source.Interface
 }
 
 type MetaMessage struct {
@@ -40,7 +40,7 @@ func New(client *tg.Client, storage db.Interface, fsm fsm.Interface, processUnha
 		storage:          storage,
 		fsm:              fsm,
 		processUnhandled: processUnhandled,
-		Source:           source,
+		source:           source,
 	}
 }
 

@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"context"
 	"log"
 	"strings"
 )
@@ -11,9 +12,15 @@ func (p *Processor) doCallBack(text string, chatID int, username string) error {
 
 	switch data {
 	case atisuCall:
-		return nil
+		return p.atisuCallback(username)
 	case "a":
 		return nil
 	}
+	return nil
+}
+
+func (p *Processor) atisuCallback(userID string) error {
+	p.fsm.GetFilter(context.TODO(), userID)
+	p.source.GetCarsWithFilter(nil)
 	return nil
 }

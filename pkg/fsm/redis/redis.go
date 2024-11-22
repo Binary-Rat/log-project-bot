@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/Binary-Rat/atisu"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -13,9 +14,10 @@ type fsm struct {
 }
 
 const (
-	stateField = "state"
-	loadVField = "loadV"
-	loadWField = "loadW"
+	stateField  = "state"
+	loadVField  = "loadV"
+	loadWField  = "loadW"
+	filterField = "filter"
 )
 
 //In Redis the data of user will be stored as hash table with userID as key
@@ -72,4 +74,13 @@ func (f *fsm) GetLoad(ctx context.Context, userID string) (loadV float64, loadW 
 		log.Println("cannot convert loadW to float")
 	}
 	return loadV, loadW
+}
+
+func (f *fsm) SetFilter(ctx context.Context, userID string, filter []byte) error {
+	return f.client.HSet(ctx, userID, filterField, filter).Err()
+}
+
+// Not implemented. Problem is how to store filter in reddis maybe not reddis?
+func (f *fsm) GetFilter(ctx context.Context, userID string) atisu.Filter {
+	return atisu.Filter{}
 }
