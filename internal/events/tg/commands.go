@@ -20,6 +20,7 @@ const (
 	HelpCmd  = "/help"
 	StartCmd = "/start"
 	CalcCmd  = "/calc"
+	ExitCmd  = "/exit"
 )
 
 //Unfortunately, i really dont know how to divede this logi(((
@@ -31,20 +32,17 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	log.Printf("get new command: %s from user: %s\n", msg, username)
 
 	state := p.fsm.GetState(context.TODO(), username)
-
-	if msg == "/exit" {
-		p.fsm.SetState(context.TODO(), username, "")
-		return p.tg.SendMessage(chatID, text.HelloMsg, nil)
+	switch state {
+	case stateCalcV:
+		p.calcVEvent(msg, chatID, username)
+	case stateCalcW:
+		p.calcWEvent(msg, chatID, username)
 	}
 
-	//check state
-	if state == stateCalcV {
-		return p.calcVEvent(msg, chatID, username)
-	} else if state == stateCalcW {
-		return p.calcWEvent(msg, chatID, username)
-	}
 	//check command
 	switch msg {
+	case ExitCmd:
+		return p.exit(username, chatID)
 	case StartCmd:
 		return p.sendHello(chatID, username)
 	case HelpCmd:
@@ -54,6 +52,12 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	default:
 		return p.tg.SendMessage(chatID, text.MsgUnknownCommand, nil)
 	}
+}
+
+func (p *Processor) exit(username string, chatID int) error {
+	p.fsm.SetState(context.TODO(), username, "")
+	return p.tg.SendMessage(chatID, text.HelloMsg, nil)
+
 }
 
 func (p *Processor) sendHelp(chatID int) error {
