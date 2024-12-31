@@ -17,10 +17,10 @@ const (
 	stateCalcV = "calcV"
 	stateCalcW = "calcW"
 	//commands
-	HelpCmd  = "/help"
-	StartCmd = "/start"
-	CalcCmd  = "/calc"
-	ExitCmd  = "/exit"
+	helpCmd  = "/help"
+	startCmd = "/start"
+	calcCmd  = "/calc"
+	exitCmd  = "/exit"
 )
 
 //Unfortunately, i really dont know how to divede this logi(((
@@ -31,23 +31,29 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 	msg = strings.TrimSpace(msg)
 	log.Printf("get new command: %s from user: %s\n", msg, username)
 
-	state := p.fsm.GetState(context.TODO(), username)
+	if msg == exitCmd {
+		return p.exit(username, chatID)
+	}
+
+	state := p.fsm.GetState(context.Background(), username)
 	switch state {
 	case stateCalcV:
-		p.calcVEvent(msg, chatID, username)
+		return p.calcVEvent(msg, chatID, username)
 	case stateCalcW:
-		p.calcWEvent(msg, chatID, username)
+		return p.calcWEvent(msg, chatID, username)
+	case stateCityFrom:
+		return p.cityFromEvent(msg, chatID, username)
+	case stateCityTo:
+		return p.cityToEvent(msg, chatID, username)
 	}
 
 	//check command
 	switch msg {
-	case ExitCmd:
-		return p.exit(username, chatID)
-	case StartCmd:
+	case startCmd:
 		return p.sendHello(chatID, username)
-	case HelpCmd:
+	case helpCmd:
 		return p.sendHelp(chatID)
-	case CalcCmd:
+	case calcCmd:
 		return p.startCalc(chatID, username)
 	default:
 		return p.tg.SendMessage(chatID, text.MsgUnknownCommand, nil)
@@ -99,6 +105,26 @@ func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
 	p.fsm.SetState(context.TODO(), username, stateCalcW)
 	keybord := &tg.ReplyMarkup{InlineKeyboard: keybord}
 	return p.tg.SendMessage(chatID, text.CalcWMsg, keybord)
+}
+
+func (p *Processor) cityFromEvent(msg string, chatID int, username string) error {
+	p.fsm.SetCityFrom(context.TODO(), username, msg)
+	p.fsm.SetState(context.TODO(), username, stateCityTo)
+	return p.tg.SendMessage(chatID, "Введите город назначения", nil)
+}
+
+func (p *Processor) cityToEvent(msg string, chatID int, username string) error {
+	p.fsm.SetCityTO(context.TODO(), username, msg)
+	data := p.fsm.GetRoadCities(context.TODO(), username)
+	cities, err := p.source.GetCityID(data)
+	if err != nil {
+		return fmt.Errorf("can`t get city id: %w", err)
+	}
+	cars, err := p.source.GetCarsWithFilter(cities)
+	if err != nil {
+		return fmt.Errorf("can`t get cars: %w", err)
+	}
+	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), nil)
 }
 
 func (p *Processor) cars(userID string) (cars models.Cars, err error) {

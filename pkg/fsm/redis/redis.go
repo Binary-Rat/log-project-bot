@@ -18,6 +18,8 @@ const (
 	loadVField  = "loadV"
 	loadWField  = "loadW"
 	filterField = "filter"
+	cityTo      = "cityTo"
+	cityFrom    = "cityFrom"
 )
 
 //In Redis the data of user will be stored as hash table with userID as key
@@ -83,4 +85,19 @@ func (f *fsm) SetFilter(ctx context.Context, userID string, filter []byte) error
 // Not implemented. Problem is how to store filter in reddis maybe not reddis?
 func (f *fsm) GetFilter(ctx context.Context, userID string) atisu.Filter {
 	return atisu.Filter{}
+}
+
+func (f *fsm) SetCityFrom(ctx context.Context, userID string, city string) error {
+	return f.client.HSet(ctx, userID, cityFrom, city).Err()
+}
+
+func (f *fsm) SetCityTO(ctx context.Context, userID string, city string) error {
+	return f.client.HSet(ctx, userID, cityTo, city).Err()
+}
+
+func (f *fsm) GetRoadCities(ctx context.Context, userID string) []string {
+	vals := f.client.HMGet(ctx, userID, cityFrom, cityTo).Val()
+	to, _ := vals[0].(string)
+	from, _ := vals[1].(string)
+	return []string{from, to}
 }

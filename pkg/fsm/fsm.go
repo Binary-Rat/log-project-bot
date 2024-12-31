@@ -14,4 +14,7 @@ type Interface interface {
 	GetLoad(ctx context.Context, userID string) (loadV float64, loadW float64)
 	SetFilter(ctx context.Context, userID string, filter []byte) error
 	GetFilter(ctx context.Context, userID string) atisu.Filter
+	SetCityTO(ctx context.Context, userID string, cityTo string) error
+	SetCityFrom(ctx context.Context, userID string, cityFrom string) error
+	GetRoadCities(ctx context.Context, userID string) []string
 }
