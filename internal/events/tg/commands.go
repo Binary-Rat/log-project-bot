@@ -10,6 +10,8 @@ import (
 	"log-proj/pkg/models"
 	"strconv"
 	"strings"
+
+	"github.com/Binary-Rat/atisu"
 )
 
 const (
@@ -92,7 +94,8 @@ func (p *Processor) calcWEvent(msg string, chatID int, username string) error {
 	if err != nil {
 		e.Warp("can`t get cars", err)
 	}
-	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), nil)
+	keybord := &tg.ReplyMarkup{InlineKeyboard: keybord}
+	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), keybord)
 }
 
 func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
@@ -103,8 +106,7 @@ func (p *Processor) calcVEvent(msg string, chatID int, username string) error {
 	}
 	p.fsm.SetLoadV(context.TODO(), username, v)
 	p.fsm.SetState(context.TODO(), username, stateCalcW)
-	keybord := &tg.ReplyMarkup{InlineKeyboard: keybord}
-	return p.tg.SendMessage(chatID, text.CalcWMsg, keybord)
+	return p.tg.SendMessage(chatID, text.CalcWMsg, nil)
 }
 
 func (p *Processor) cityFromEvent(msg string, chatID int, username string) error {
@@ -115,12 +117,17 @@ func (p *Processor) cityFromEvent(msg string, chatID int, username string) error
 
 func (p *Processor) cityToEvent(msg string, chatID int, username string) error {
 	p.fsm.SetCityTO(context.TODO(), username, msg)
+	log.Println("searching for cars")
 	data := p.fsm.GetRoadCities(context.TODO(), username)
 	cities, err := p.source.GetCityID(data)
 	if err != nil {
 		return fmt.Errorf("can`t get city id: %w", err)
 	}
-	cars, err := p.source.GetCarsWithFilter(cities)
+	filter := atisu.Filter{}
+	filter.From.ID = (*cities)[data[0]].CityID
+	filter.To.ID = (*cities)[data[1]].CityID
+	log.Println(filter)
+	cars, err := p.source.GetCarsWithFilter(filter)
 	if err != nil {
 		return fmt.Errorf("can`t get cars: %w", err)
 	}

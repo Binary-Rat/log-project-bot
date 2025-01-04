@@ -7,6 +7,6 @@ import (
 )
 
 type Interface interface {
-	GetCarsWithFilter(filter interface{}) (models.Cars, error)
+	GetCarsWithFilter(filter atisu.Filter) (models.Cars, error)
 	GetCityID(cities []string) (citiesWithID *atisu.Cities, err error)
 }

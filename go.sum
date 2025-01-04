@@ -4,6 +4,8 @@ github.com/Binary-Rat/atisu v0.0.0-20241109163648-6788199c1d98 h1:EusZbbbigs1Qmu
 github.com/Binary-Rat/atisu v0.0.0-20241109163648-6788199c1d98/go.mod h1:MJqJM8s82Wt36GK63By19t+ZdHGmfXzRCNvKSor4XcM=
 github.com/Binary-Rat/atisu v0.0.0-20241110142905-009c15e99d13 h1:oWnufeOVYe2EQfA/N/A1cDHcIOWt3MCZegxcwZLQsmI=
 github.com/Binary-Rat/atisu v0.0.0-20241110142905-009c15e99d13/go.mod h1:MJqJM8s82Wt36GK63By19t+ZdHGmfXzRCNvKSor4XcM=
+github.com/Binary-Rat/atisu v0.0.0-20250102183659-20472c81ea2f h1:Lssj/sI9p1RTi7nmGS4bUH+/umZ1Yt/M/xu5rR0Z9wo=
+github.com/Binary-Rat/atisu v0.0.0-20250102183659-20472c81ea2f/go.mod h1:MJqJM8s82Wt36GK63By19t+ZdHGmfXzRCNvKSor4XcM=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
 github.com/cespare/xxhash/v2 v2.1.2/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
 github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f h1:lO4WD4F/rVNCu3HqELle0jiPLLBs70cWOduZpkS1E78=

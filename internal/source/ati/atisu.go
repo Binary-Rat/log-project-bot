@@ -1,7 +1,9 @@
 package ati
 
 import (
+	"encoding/json"
 	"fmt"
+	"log-proj/pkg/lib/e"
 	"log-proj/pkg/models"
 
 	"github.com/Binary-Rat/atisu"
@@ -25,20 +27,16 @@ func New(token string, isDemo bool) (*Atisu, error) {
 }
 
 // In progress
-func (a *Atisu) GetCarsWithFilter(filter interface{}) (cars models.Cars, err error) {
-	// atisuFilter, ok := filter.(atisu.Filter)
-	// if !ok {
-	// 	return nil, errors.New("wrong filter format")
-	// }
-	// body, err := a.client.GetCarsWithFilter(a.page, a.itemsPerPage, atisuFilter)
-	// if err != nil {
-	// 	return nil, e.Warp("can`t get cars with filter", err)
-	// }
+func (a *Atisu) GetCarsWithFilter(filter atisu.Filter) (cars models.Cars, err error) {
+	body, err := a.client.GetCarsWithFilter(a.page, a.itemsPerPage, filter)
+	if err != nil {
+		return cars, e.Warp("can`t get cars with filter", err)
+	}
 
-	// err = json.Unmarshal(body, &cars)
-	// if err != nil {
-	// 	return nil, e.Warp("can`t unmarshal cars", err)
-	// }
+	err = json.Unmarshal(body, &cars)
+	if err != nil {
+		return cars, e.Warp("can`t unmarshal cars", err)
+	}
 	return cars, nil
 }
 

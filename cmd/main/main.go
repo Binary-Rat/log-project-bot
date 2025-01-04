@@ -27,7 +27,7 @@ func main() {
 	//setup the fsm
 	fsm := redis.New()
 
-	ati, _ := ati.New("", true)
+	ati, _ := ati.New("token", true)
 
 	eventProc := tg.New(client, db, fsm, false, ati)
 
