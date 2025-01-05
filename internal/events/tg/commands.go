@@ -126,7 +126,6 @@ func (p *Processor) cityToEvent(msg string, chatID int, username string) error {
 	filter := atisu.Filter{}
 	filter.From.ID = (*cities)[data[0]].CityID
 	filter.To.ID = (*cities)[data[1]].CityID
-	log.Println(filter)
 	cars, err := p.source.GetCarsWithFilter(filter)
 	if err != nil {
 		return fmt.Errorf("can`t get cars: %w", err)
