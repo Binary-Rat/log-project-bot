@@ -39,6 +39,10 @@ func New() *fsm {
 	return fsm
 }
 
+func (f *fsm) AllUserData(ctx context.Context, userID string) (map[string]string, error) {
+	return f.client.HGetAll(ctx, userID).Result()
+}
+
 // SetState sets the state associated with the given userID in Redis.
 // It returns an error if something fails while executing the command in Redis.
 func (f *fsm) SetState(ctx context.Context, userID string, state string) error {

@@ -22,7 +22,9 @@ func New(token string, isDemo bool) (*Atisu, error) {
 		return nil, err
 	}
 	return &Atisu{
-		client: client,
+		page:         1,
+		itemsPerPage: 10,
+		client:       client,
 	}, nil
 }
 

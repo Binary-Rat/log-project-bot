@@ -116,20 +116,57 @@ func (p *Processor) cityFromEvent(msg string, chatID int, username string) error
 }
 
 func (p *Processor) cityToEvent(msg string, chatID int, username string) error {
-	p.fsm.SetCityTO(context.TODO(), username, msg)
+	// Используем контекст с тайм-аутом или передаем его как аргумент
+	ctx := context.Background()
+	p.fsm.SetState(context.TODO(), username, "")
+
+	// Сохраняем город для обработки
+	p.fsm.SetCityTO(ctx, username, msg)
 	log.Println("searching for cars")
-	data := p.fsm.GetRoadCities(context.TODO(), username)
+
+	// Получаем список городов
+	data := p.fsm.GetRoadCities(ctx, username)
 	cities, err := p.source.GetCityID(data)
 	if err != nil {
-		return fmt.Errorf("can`t get city id: %w", err)
+		return fmt.Errorf("can't get city id for cities: %v, error: %w", data, err)
 	}
-	filter := atisu.Filter{}
-	filter.From.ID = (*cities)[data[0]].CityID
-	filter.To.ID = (*cities)[data[1]].CityID
+
+	// Проверяем наличие городов и их идентификаторов
+	if len(*cities) < 2 {
+		return fmt.Errorf("insufficient city data: %v", *cities)
+	}
+
+	// Извлекаем ID городов
+	fromCityID := (*cities)[data[0]].CityID
+	toCityID := (*cities)[data[1]].CityID
+
+	// Создание фильтра
+	filter := atisu.Filter{
+		Dates: atisu.DateOption{DateOption: "today"},
+		From: atisu.CityFilter{
+			ID:   fromCityID,
+			Type: 2,
+		},
+		To: atisu.CityFilter{
+			ID:   toCityID,
+			Type: 2,
+		},
+	}
+	// Получаем минимальные и максимальные значения для объема и веса
+	filter.Volume.Min, filter.Weight.Min = p.fsm.GetLoad(ctx, username)
+	filter.Volume.Max, filter.Weight.Max = filter.Volume.Min+100, filter.Weight.Min+100
+
+	// Получаем машины с фильтром
 	cars, err := p.source.GetCarsWithFilter(filter)
 	if err != nil {
-		return fmt.Errorf("can`t get cars: %w", err)
+		return fmt.Errorf("can't get cars with filter %+v: %w", filter, err)
 	}
+
+	// Отправка сообщения
+	if len(cars.Names()) == 0 {
+		return p.tg.SendMessage(chatID, "No cars found", nil)
+	}
+
 	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), nil)
 }
 

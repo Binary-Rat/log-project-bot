@@ -7,6 +7,7 @@ import (
 )
 
 type Interface interface {
+	AllUserData(ctx context.Context, userID string) (map[string]string, error)
 	GetState(ctx context.Context, userID string) string
 	SetState(ctx context.Context, userID string, state string) error
 	SetLoadW(ctx context.Context, userID string, loadW float64) error
