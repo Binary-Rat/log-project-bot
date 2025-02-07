@@ -9,11 +9,24 @@ const (
 )
 
 var (
-	keybord = [][]tg.InlineKeyboardButton{
+	atiSearchKeyboard = [][]tg.KeyboardButton{
 		{
 			{
 				Text:         "Подобрать машину на Ati.SU",
 				CallbackData: atisuCall,
+			},
+		},
+	}
+	startKeyboard = [][]tg.KeyboardButton{
+		{
+			{
+				Text: "/start",
+			},
+			{
+				Text: "/help",
+			},
+			{
+				Text: "/calc",
 			},
 		},
 	}

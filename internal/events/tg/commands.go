@@ -64,7 +64,7 @@ func (p *Processor) doCmd(msg string, chatID int, username string) error {
 
 func (p *Processor) exit(username string, chatID int) error {
 	p.fsm.SetState(context.TODO(), username, "")
-	return p.tg.SendMessage(chatID, text.HelloMsg, nil)
+	return p.tg.SendMessage(chatID, fmt.Sprintf(text.HelloMsg, username), nil)
 
 }
 
@@ -94,7 +94,7 @@ func (p *Processor) calcWEvent(msg string, chatID int, username string) error {
 	if err != nil {
 		e.Warp("can`t get cars", err)
 	}
-	keybord := &tg.ReplyMarkup{InlineKeyboard: keybord}
+	keybord := &tg.ReplyMarkup{InlineKeyboard: atiSearchKeyboard}
 	return p.tg.SendMessage(chatID, strings.Join(cars.Names(), " "), keybord)
 }
 
