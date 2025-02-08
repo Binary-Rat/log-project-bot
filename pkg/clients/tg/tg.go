@@ -52,26 +52,26 @@ func (c *Client) Updates(offset int, limit int) ([]Updates, error) {
 	return res.Result, nil
 }
 
-func (c *Client) SendMessage(chatID int, text string, keybord *ReplyMarkup) error {
-	if keybord == nil {
-		keybord = &ReplyMarkup{}
-	}
-	if keybord.InlineKeyboard == nil {
-		keybord.InlineKeyboard = [][]InlineKeyboardButton{{}}
-	}
+type keyboard interface {
+}
+
+func (c *Client) SendMessage(chatID int, text string, keyboard keyboard) error {
 	msg := OutcomingMessage{
 		ChatID:      chatID,
 		Text:        text,
-		ReplyMarkup: keybord,
+		ReplyMarkup: keyboard,
 	}
+
+	// Преобразуем сообщение в JSON
 	body, err := json.Marshal(msg)
-	fmt.Println(string(body))
 	if err != nil {
-		return e.Warp("can`t marshal message", err)
+		return e.Warp("can't marshal message", err)
 	}
+
+	// Отправляем запрос
 	_, err = c.doRequest(sendMessageEndpoint, nil, body)
 	if err != nil {
-		return e.Warp("can`t send message", err)
+		return e.Warp("can't send message", err)
 	}
 
 	return nil
@@ -98,7 +98,6 @@ func (c *Client) doRequest(Endpoint string, q url.Values, body []byte) ([]byte, 
 	if err != nil {
 		return nil, e.Warp(errMsg, err)
 	}
-
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.client.Do(req)
@@ -107,6 +106,11 @@ func (c *Client) doRequest(Endpoint string, q url.Values, body []byte) ([]byte, 
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		b, _ := io.ReadAll(resp.Body)
+		return nil, e.Warp(errMsg, fmt.Errorf("status code: %d, body: %s", resp.StatusCode, b))
+	}
 
 	body, err = io.ReadAll(resp.Body)
 	if err != nil {

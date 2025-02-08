@@ -73,7 +73,8 @@ func (p *Processor) sendHelp(chatID int) error {
 }
 
 func (p *Processor) sendHello(chatID int, u string) error {
-	return p.tg.SendMessage(chatID, fmt.Sprintf(text.HelloMsg, u), nil)
+	keyboard := &tg.ReplyMarkup{Keyboard: startKeyboard}
+	return p.tg.SendMessage(chatID, fmt.Sprintf(text.HelloMsg, u), keyboard)
 }
 
 func (p *Processor) startCalc(chatID int, u string) error {

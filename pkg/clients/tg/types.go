@@ -19,9 +19,9 @@ type IncomingMessage struct {
 }
 
 type OutcomingMessage struct {
-	Text        string       `json:"text"`
-	ChatID      int          `json:"chat_id"`
-	ReplyMarkup *ReplyMarkup `json:"reply_markup"`
+	Text        string   `json:"text"`
+	ChatID      int      `json:"chat_id"`
+	ReplyMarkup keyboard `json:"reply_markup,omitempty"`
 }
 
 type From struct {
@@ -33,7 +33,9 @@ type Chat struct {
 }
 
 type ReplyMarkup struct {
-	InlineKeyboard [][]InlineKeyboardButton `json:"inline_keyboard"`
+	Keyboard       [][]KeyboardButton `json:"keyboard,omitempty"`
+	InlineKeyboard [][]KeyboardButton `json:"inline_keyboard,omitempty"`
+	OneTime        bool               `json:"one_time_keyboard,omitempty"`
 }
 
 type IncomingCallbackQuery struct {
@@ -43,8 +45,8 @@ type IncomingCallbackQuery struct {
 	Data    string          `json:"data"`
 }
 
-type InlineKeyboardButton struct {
+type KeyboardButton struct {
 	Text         string `json:"text"`
-	URL          string `json:"url"`
-	CallbackData string `json:"callback_data"`
+	URL          string `json:"url,omitempty"`
+	CallbackData string `json:"callback_data,omitempty"`
 }

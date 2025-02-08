@@ -22,11 +22,20 @@ var (
 			{
 				Text: "/start",
 			},
+		},
+		{
 			{
 				Text: "/help",
 			},
+		},
+		{
 			{
 				Text: "/calc",
+			},
+		},
+		{
+			{
+				Text: "/exit",
 			},
 		},
 	}
